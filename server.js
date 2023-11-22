@@ -32,7 +32,6 @@ async function run() {
     await client.connect();
     const database = client.db("QuizDB");
     const QuestionCollection = database.collection("Questions");
-    // const QuestionCollection =await client.db("admin").collections("Questions");
 
     ///get request///
     app.get('/questionSet',async(req,res)=>{
@@ -53,15 +52,16 @@ async function run() {
     app.put("/EditQuiz/:id",async(req,res)=>{
       const id = req.params.id
       const Quiz = req.body
-      const filter = {_id : new ObjectId(id)}
-      const options = { upsert: true }
+      // const filter = {_id : new ObjectId(id)}
+      // const options = { upsert: true }
+      console.log('heelol ami tazwer',Quiz)
       // const updatedQuiz ={
       //   $set:{
 
       //   }
       // }
-      const result = await QuestionCollection.updateOne(filter, options);
-      res.send(result)
+      // const result = await QuestionCollection.updateOne(filter, options);
+      // res.send(result)
     })
 
     // Send a ping to confirm a successful connection
