@@ -2,7 +2,7 @@ const express = require("express");
 const req = require("express/lib/request");
 const res = require("express/lib/response");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -48,6 +48,21 @@ async function run() {
       const result = await QuestionCollection.insertOne(question);
       res.send(result);
     });
+
+    ///update request///
+    app.put("/EditQuiz/:id",async(req,res)=>{
+      const id = req.params.id
+      const Quiz = req.body
+      const filter = {_id : new ObjectId(id)}
+      const options = { upsert: true }
+      // const updatedQuiz ={
+      //   $set:{
+
+      //   }
+      // }
+      const result = await QuestionCollection.updateOne(filter, options);
+      res.send(result)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
