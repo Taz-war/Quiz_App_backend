@@ -40,6 +40,14 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/EditQuiz/:id',async(req,res)=>{
+      const id = req.params.id
+      // const quizes =req.body
+      const query = { _id: new ObjectId(id)};
+      const result = await QuestionCollection.findOne(query);
+      res.send(result)
+    })
+
     ///post request////
     app.post("/questionSet", async (req, res) => {
       const question = req.body;
@@ -52,16 +60,16 @@ async function run() {
     app.put("/EditQuiz/:id",async(req,res)=>{
       const id = req.params.id
       const Quiz = req.body
-      // const filter = {_id : new ObjectId(id)}
-      // const options = { upsert: true }
-      console.log('heelol ami tazwer',Quiz)
-      // const updatedQuiz ={
-      //   $set:{
-
-      //   }
-      // }
-      // const result = await QuestionCollection.updateOne(filter, options);
-      // res.send(result)
+      const filter = {_id : new ObjectId(id)}
+      const options = { upsert: true }
+      console.log('heelol ami tazwer',id)
+      const updatedQuiz ={
+        $set:{
+          questions:Quiz
+        }
+      }
+      const result = await QuestionCollection.updateOne(filter, updatedQuiz, options);
+      res.send(result)
     })
 
     // Send a ping to confirm a successful connection
