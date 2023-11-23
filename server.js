@@ -42,7 +42,6 @@ async function run() {
 
     app.get('/EditQuiz/:id',async(req,res)=>{
       const id = req.params.id
-      // const quizes =req.body
       const query = { _id: new ObjectId(id)};
       const result = await QuestionCollection.findOne(query);
       res.send(result)
@@ -65,10 +64,20 @@ async function run() {
       console.log('heelol ami tazwer',id)
       const updatedQuiz ={
         $set:{
-          questions:Quiz
+          date:Quiz.date,
+          questionSetTitle:Quiz.questionSetTitle,
+          questions:Quiz.questions
         }
       }
       const result = await QuestionCollection.updateOne(filter, updatedQuiz, options);
+      res.send(result)
+    })
+
+    ///delete post///
+    app.delete('/questionSet/:id',async(req,res)=>{
+      const id = req.params.id
+      const query ={_id : new ObjectId(id)}
+      const result = await QuestionCollection.deleteOne(query);
       res.send(result)
     })
 
