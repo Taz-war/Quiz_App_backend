@@ -34,18 +34,18 @@ async function run() {
     const QuestionCollection = database.collection("Questions");
 
     ///get request///
-    app.get('/questionSet',async(req,res)=>{
+    app.get("/questionSet", async (req, res) => {
       const cursor = QuestionCollection.find();
       const result = await cursor.toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
-    app.get('/EditQuiz/:id',async(req,res)=>{
-      const id = req.params.id
-      const query = { _id: new ObjectId(id)};
+    app.get("/EditQuiz/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
       const result = await QuestionCollection.findOne(query);
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     ///post request////
     app.post("/questionSet", async (req, res) => {
@@ -56,30 +56,48 @@ async function run() {
     });
 
     ///update request///
-    app.put("/EditQuiz/:id",async(req,res)=>{
-      const id = req.params.id
-      const Quiz = req.body
-      const filter = {_id : new ObjectId(id)}
-      const options = { upsert: true }
-      console.log('heelol ami tazwer',id)
-      const updatedQuiz ={
-        $set:{
-          date:Quiz.date,
-          questionSetTitle:Quiz.questionSetTitle,
-          questions:Quiz.questions
-        }
-      }
-      const result = await QuestionCollection.updateOne(filter, updatedQuiz, options);
-      res.send(result)
-    })
+    app.put("/EditQuiz/:id", async (req, res) => {
+      const id = req.params.id;
+      const Quiz = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      console.log("heelol ami tazwer", id);
+      const updatedQuiz = {
+        $set: {
+          date: Quiz.date,
+          questionSetTitle: Quiz.questionSetTitle,
+          questions: Quiz.questions,
+        },
+      };
+      const result = await QuestionCollection.updateOne(
+        filter,
+        updatedQuiz,
+        options
+      );
+      res.send(result);
+    });
 
     ///delete post///
-    app.delete('/questionSet/:id',async(req,res)=>{
-      const id = req.params.id
-      const query ={_id : new ObjectId(id)}
-      const result = await QuestionCollection.deleteOne(query);
-      res.send(result)
-    })
+    // app.delete("/questionSet", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: new ObjectId(id) };
+    //   const result = await QuestionCollection.deleteOne(query);
+    //   res.send(result);
+    // });
+
+    app.delete("/questionset", async (req, res) => {
+      // const id= req
+
+      const result = await QuestionCollection.deleteMany({
+        _id: {
+          $in: [
+            new ObjectId("655ece7cb637597f69968982"),
+            new ObjectId("655ee278a1b75e81e13490f8"),
+          ],
+        },
+      });
+      console.log({ result });
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
