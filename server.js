@@ -78,25 +78,17 @@ async function run() {
     });
 
     ///delete post///
-    // app.delete("/questionSet", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: new ObjectId(id) };
-    //   const result = await QuestionCollection.deleteOne(query);
-    //   res.send(result);
-    // });
-
-    app.delete("/questionset", async (req, res) => {
-      // const id= req
-
+    app.delete("/questionset/:id", async (req, res) => {
+      const id= req.params.id
+      const ids = id.split(',');
+      const idsToDelete = ids.map(id =>new ObjectId(id));
       const result = await QuestionCollection.deleteMany({
         _id: {
-          $in: [
-            new ObjectId("655ece7cb637597f69968982"),
-            new ObjectId("655ee278a1b75e81e13490f8"),
-          ],
+          $in: idsToDelete,
         },
       });
-      console.log({ result });
+      res.send(result)
+      // console.log(result);
     });
 
     // Send a ping to confirm a successful connection
