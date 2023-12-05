@@ -79,16 +79,34 @@ async function run() {
 
     ///delete post///
     app.delete("/questionset/:id", async (req, res) => {
-      const id= req.params.id
-      const ids = id.split(',');
-      const idsToDelete = ids.map(id =>new ObjectId(id));
+      const id = req.params.id;
+      const ids = id.split(",");
+      const idsToDelete = ids.map((id) => new ObjectId(id));
       const result = await QuestionCollection.deleteMany({
         _id: {
           $in: idsToDelete,
         },
       });
-      res.send(result)
+      res.send(result);
       // console.log(result);
+    });
+
+    ///launch quiz////
+    app.get("/questionSet/:id", async (req, res) => {
+      const id = req.params.id;
+      var result = "";
+      var characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      var charactersLength = characters.length;
+
+      for (var i = 0; i < 6; i++) {
+        result += characters.charAt(
+          Math.floor(Math.random() * charactersLength)
+        );
+      }
+      console.log({result})
+      res.send(result)
+      // await studentRun(id)
     });
 
     // Send a ping to confirm a successful connection
@@ -102,6 +120,30 @@ async function run() {
   }
 }
 run().catch(console.dir);
+
+// async function studentRun(id) {
+//   try {
+//     // Connect the client to the server	(optional starting in v4.7)
+//     await client.connect();
+//     const database = client.db("QuizDB");
+//     const QuestionCollection = database.collection("Questions");
+
+//     // Define your query here. An empty query object will return all documents.
+//     const query = { _id: new ObjectId(id) };
+
+//     const data = await QuestionCollection.findOne(query);
+//     // const data = await collection.find(query).toArray();
+//     console.log(data);
+
+//     // Send a ping to confirm a successful connection
+//     await client.db("admin").command({ ping: 1 });
+//     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+//   } finally {
+//     // Ensures that the client will close when you finish/error
+//     await client.close();
+//   }
+// }
+// studentRun().catch(console.dir);
 
 ///routes///
 app.get("/", (req, res) => {
