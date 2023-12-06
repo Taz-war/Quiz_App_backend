@@ -32,7 +32,7 @@ async function run() {
     await client.connect();
     const database = client.db("QuizDB");
     const QuestionCollection = database.collection("Questions");
-
+    const StudentCollection = database.collection("StudentCollection");
     ///get request///
     app.get("/questionSet", async (req, res) => {
       const cursor = QuestionCollection.find();
@@ -94,6 +94,7 @@ async function run() {
     ///launch quiz////
     app.get("/questionSet/:id", async (req, res) => {
       const id = req.params.id;
+      const d =req.body
       var result = "";
       var characters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -104,8 +105,13 @@ async function run() {
           Math.floor(Math.random() * charactersLength)
         );
       }
-      console.log({result})
-      res.send(result)
+      // if (Object.keys(d).length === 0) {
+        res.send(result)
+      // }
+      console.log(Object.keys(d).length === 0)
+    // // Insert the document into the other collection
+    const insertResult = await StudentCollection.insertOne({_id: new ObjectId(id),roomName:result});
+      console.log(insertResult)
       // await studentRun(id)
     });
 
