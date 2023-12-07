@@ -110,10 +110,26 @@ async function run() {
       // }
       console.log(Object.keys(d).length === 0)
     // // Insert the document into the other collection
-    const insertResult = await StudentCollection.insertOne({_id: new ObjectId(id),roomName:result});
+      const insertResult = await StudentCollection.insertOne({_id: new ObjectId(id),roomName:result});
       console.log(insertResult)
       // await studentRun(id)
     });
+
+    ///student quiz entry///
+    app.get("/student/:room",async(req,res)=>{
+      logInRoom=req.params.room
+      const query = {roomName: logInRoom}; 
+      console.log(query)
+      const projection = { roomName: 1, _id: 0 };
+      const data = await StudentCollection.findOne(query,{projection});
+      console.log(data)
+      if (JSON.stringify(query) ===JSON.stringify(data)) {
+        res.send(true)
+        console.log('room name is correct')
+      }else{
+        res.send(false)
+      }
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -126,30 +142,6 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
-// async function studentRun(id) {
-//   try {
-//     // Connect the client to the server	(optional starting in v4.7)
-//     await client.connect();
-//     const database = client.db("QuizDB");
-//     const QuestionCollection = database.collection("Questions");
-
-//     // Define your query here. An empty query object will return all documents.
-//     const query = { _id: new ObjectId(id) };
-
-//     const data = await QuestionCollection.findOne(query);
-//     // const data = await collection.find(query).toArray();
-//     console.log(data);
-
-//     // Send a ping to confirm a successful connection
-//     await client.db("admin").command({ ping: 1 });
-//     console.log("Pinged your deployment. You successfully connected to MongoDB!");
-//   } finally {
-//     // Ensures that the client will close when you finish/error
-//     await client.close();
-//   }
-// }
-// studentRun().catch(console.dir);
 
 ///routes///
 app.get("/", (req, res) => {
