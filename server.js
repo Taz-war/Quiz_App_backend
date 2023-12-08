@@ -119,15 +119,16 @@ async function run() {
     app.get("/student/:room",async(req,res)=>{
       logInRoom=req.params.room
       const query = {roomName: logInRoom}; 
-      console.log(query)
-      const projection = { roomName: 1, _id: 0 };
-      const data = await StudentCollection.findOne(query,{projection});
+      // console.log(query)
+      // const projection = { roomName: 1, _id: 1 };
+      const data = await StudentCollection.findOne(query);
       console.log(data)
-      if (JSON.stringify(query) ===JSON.stringify(data)) {
-        res.send(true)
+      // res.send(data)
+      if (JSON.stringify(query.roomName) === JSON.stringify(data.roomName)) {
+        res.send({...data,result:true})
         console.log('room name is correct')
       }else{
-        res.send(false)
+        res.send({ data:null, result: false })
       }
     })
 
