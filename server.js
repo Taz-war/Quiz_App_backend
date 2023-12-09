@@ -132,6 +132,12 @@ async function run() {
       }
     })
 
+    app.put('student/loginInfo/:id',async (req,res)=>{
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
