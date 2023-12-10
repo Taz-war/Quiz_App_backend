@@ -94,7 +94,7 @@ async function run() {
     ///launch quiz////
     app.get("/questionSet/:id", async (req, res) => {
       const id = req.params.id;
-      const d =req.body
+      const d = req.body;
       var result = "";
       var characters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -106,37 +106,52 @@ async function run() {
         );
       }
       // if (Object.keys(d).length === 0) {
-        res.send(result)
+      res.send(result);
       // }
-      console.log(Object.keys(d).length === 0)
-    // // Insert the document into the other collection
-      const insertResult = await StudentCollection.insertOne({_id: new ObjectId(id),roomName:result});
-      console.log(insertResult)
+      console.log(Object.keys(d).length === 0);
+      // // Insert the document into the other collection
+      const insertResult = await StudentCollection.insertOne({
+        _id: new ObjectId(id),
+        roomName: result,
+      });
+      console.log(insertResult);
       // await studentRun(id)
     });
 
     ///student quiz entry///
-    app.get("/student/:room",async(req,res)=>{
-      logInRoom=req.params.room
-      const query = {roomName: logInRoom}; 
+    app.get("/student/:room", async (req, res) => {
+      logInRoom = req.params.room;
+      const query = { roomName: logInRoom };
       // console.log(query)
       // const projection = { roomName: 1, _id: 1 };
       const data = await StudentCollection.findOne(query);
-      console.log(data)
+      console.log(data);
       // res.send(data)
-      if (JSON.stringify(query.roomName) === JSON.stringify(data.roomName)) {
-        res.send({...data,result:true})
-        console.log('room name is correct')
-      }else{
-        res.send({ data:null, result: false })
+      if (data != null) {
+        res.send({ ...data, result: true });
+        console.log("room name is correct");
+      } else {
+        res.send({ data: null, result: false });
       }
-    })
+    });
 
-    app.put('student/loginInfo/:id',async (req,res)=>{
+    app.put("/student/loginInfo/:id", async (req, res) => {
       const id = req.params.id;
+      const studentInfo = req.body;
       const filter = { _id: new ObjectId(id) };
       const options = { upsert: true };
-    })
+      const updateStudentInfo = {
+        $push: {
+          students: studentInfo,
+        },
+      };
+      const result = await StudentCollection.updateOne(
+        filter,
+        updateStudentInfo,
+        options
+      );
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
