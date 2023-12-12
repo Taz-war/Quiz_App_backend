@@ -25,8 +25,11 @@ io.on('connection', (socket) => {
   // Joining a room
   socket.on('joinRoom', (room) => {
     socket.join(room);
+    io.sockets.in(room).emit('connectedRoom','you r connected to '+room)
     console.log(`A user joined room: ${room}`);
   });
+
+  
 
   // Receiving a message and broadcasting it to the room
   socket.on('sendMessage', ({ room, message }) => {
