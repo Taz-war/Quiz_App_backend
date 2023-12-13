@@ -4,12 +4,12 @@ const res = require("express/lib/response");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
-const http = require('http');
-const socket = require('socket.io')
+const http = require("http");
+const socket = require("socket.io");
 const port = process.env.PORT || 5000;
 
 ///midleware///
-app.use(cors({ origin: 'http://localhost:4000' }));
+app.use(cors({ origin: "http://localhost:4000" }));
 app.use(express.json());
 const server = http.createServer(app);
 // const io = socketIo(server);
@@ -17,32 +17,38 @@ var io = socket(server, {
   cors: {
     origin: "http://localhost:4000",
     // methods: ["GET", "POST"]
-  }
-})
-io.on('connection', (socket) => {
-  console.log('New client connected');
+  },
+});
+
+var room_name = "C7h9EM";
+io.on("connection", (socket) => {
+  console.log("New client connected");
 
   // Joining a room
-  socket.on('joinRoom', (room) => {
-    socket.join(room);
-    io.sockets.in(room).emit('connectedRoom','you r connected to '+room)
-    console.log(`A user joined room: ${room}`);
-  });
 
-  
+  socket.join(room_name);
+  io.sockets.in(room_name).emit("connectedRoom", "you r connected to " + room_name)
+
+  // socket.on("joinRoom", (room) => {
+  //   socket.join(room);
+  //   io.sockets.in(room).emit("connectedRoom", "you r connected to " + room);
+  //   let roomSize = io.sockets.adapter.rooms.get(room).size - 1;
+  //   io.sockets.in(room).emit("roomSize", roomSize + "user joined this room");
+  //   console.log(`A user joined room: ${room}`);
+  // });
 
   // Receiving a message and broadcasting it to the room
-  socket.on('sendMessage', ({ room, message }) => {
-    io.to(room).emit('message', message);
+  socket.on("sendMessage", ({ room, message }) => {
+    io.to(room).emit("message", message);
   });
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
   });
 });
 
 server.listen(port, () => {
-  console.log('Server listening on port 5000');
+  console.log("Server listening on port 5000");
 });
 
 ///mongo db user name & password///
@@ -140,10 +146,9 @@ async function run() {
           Math.floor(Math.random() * charactersLength)
         );
       }
-      // if (Object.keys(d).length === 0) {
+      room_name = result;
       res.send(result);
-      // }
-      console.log(Object.keys(d).length === 0);
+
       // // Insert the document into the other collection
       const insertResult = await StudentCollection.insertOne({
         _id: new ObjectId(id),
@@ -209,15 +214,13 @@ run().catch(console.dir);
 //   res.send("hello im from blog");
 // });
 
-io.on('connection', (socket) => {
-  socket.on('connectQuiz',(data)=>{
-    console.log(data)
-    console.log('New client connected',socket.id);
-  })
+io.on("connection", (socket) => {
+  socket.on("connectQuiz", (data) => {
+    console.log(data);
+    console.log("New client connected", socket.id);
+  });
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
   });
 });
-
-
