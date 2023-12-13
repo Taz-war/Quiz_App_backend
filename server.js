@@ -28,7 +28,16 @@ io.on("connection", (socket) => {
 
   socket.join(room_name);
   io.sockets.in(room_name).emit("connectedRoom", "you r connected to " + room_name)
+  socket.on('questionComplete',(data)=>{
+    // console.log('i dont know',data)
+    io.sockets.in(room_name).emit("questionCompleted", data)
+  })
 
+  socket.on('totalQuestions',(data=>{
+    io.sockets.in(room_name).emit("steps", data)
+  }))
+    // let roomSize = io.sockets.adapter.rooms.get(room_name).size - 1;
+    // io.sockets.in(room_name).emit("roomSize", roomSize + "user joined this room");
   // socket.on("joinRoom", (room) => {
   //   socket.join(room);
   //   io.sockets.in(room).emit("connectedRoom", "you r connected to " + room);
