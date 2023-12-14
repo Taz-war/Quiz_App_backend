@@ -21,40 +21,75 @@ var io = socket(server, {
 });
 
 var room_name = "C7h9EM";
-io.on("connection", (socket) => {
-  console.log("New client connected");
+// io.on("connection", (socket) => {
+//   console.log("New client connected");
 
-  // Joining a room
+//   // Joining a room
 
-  socket.join(room_name);
-  io.sockets.in(room_name).emit("connectedRoom", "you r connected to " + room_name)
-  socket.on('questionComplete',(data)=>{
-    // console.log('i dont know',data)
-    io.sockets.in(room_name).emit("questionCompleted", data)
-  })
+//   socket.join(room_name);
+//   io.sockets.in(room_name).emit("connectedRoom", "you r connected to " + room_name)
+//   socket.on('questionComplete',(data)=>{
+//     // console.log('i dont know',data)
+//     io.sockets.in(room_name).emit("questionCompleted", data)
+//   })
 
-  socket.on('totalQuestions',(data=>{
-    io.sockets.in(room_name).emit("steps", data)
-  }))
-    // let roomSize = io.sockets.adapter.rooms.get(room_name).size - 1;
-    // io.sockets.in(room_name).emit("roomSize", roomSize + "user joined this room");
-  // socket.on("joinRoom", (room) => {
-  //   socket.join(room);
-  //   io.sockets.in(room).emit("connectedRoom", "you r connected to " + room);
-  //   let roomSize = io.sockets.adapter.rooms.get(room).size - 1;
-  //   io.sockets.in(room).emit("roomSize", roomSize + "user joined this room");
-  //   console.log(`A user joined room: ${room}`);
-  // });
+//   socket.on('totalQuestions',(data=>{
+//     io.sockets.in(room_name).emit("steps", data)
+//   }))
+//     // let roomSize = io.sockets.adapter.rooms.get(room_name).size - 1;
+//     // io.sockets.in(room_name).emit("roomSize", roomSize + "user joined this room");
+//   // socket.on("joinRoom", (room) => {
+//   //   socket.join(room);
+//   //   io.sockets.in(room).emit("connectedRoom", "you r connected to " + room);
+//   //   let roomSize = io.sockets.adapter.rooms.get(room).size - 1;
+//   //   io.sockets.in(room).emit("roomSize", roomSize + "user joined this room");
+//   //   console.log(`A user joined room: ${room}`);
+//   // });
 
-  // Receiving a message and broadcasting it to the room
-  socket.on("sendMessage", ({ room, message }) => {
-    io.to(room).emit("message", message);
-  });
+//   // Receiving a message and broadcasting it to the room
+//   socket.on("sendMessage", ({ room, message }) => {
+//     io.to(room).emit("message", message);
+//   });
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-  });
+//   socket.on("disconnect", () => {
+//     console.log("Client disconnected");
+//   });
+// });
+
+// ... previous imports and setup
+
+io.on('connection', (socket) => {
+    // Assuming user data is sent during connection
+    socket.on('joinRoom', (room, userData,steps,questionCompleted) => {
+        socket.join(room);
+        // Store user data in the room's context (can be an array or object)
+        addUserToRoom(room, userData);
+
+        // Notify the admin module
+       
+        io.to('admin').emit('userJoined', userData,steps,questionCompleted);
+    });
+    socket.on('joinAdminRoom',(adminRoomName)=>{
+      socket.join(adminRoomName)
+    })
+
+    socket.on('disconnect', () => {
+        // Update room data and notify admin
+        const userData = removeUserFromRoom(socket.id);
+        io.to('admin').emit('userLeft', userData.room, userData);
+    });
 });
+
+// Dummy functions to manage room data
+function addUserToRoom(room, userData) {
+    // Implement adding user to room logic
+}
+
+function removeUserFromRoom(socketId) {
+    // Implement removing user from room logic
+    return { room: 'exampleRoom', userData: {} }; // Return user data
+}
+
 
 server.listen(port, () => {
   console.log("Server listening on port 5000");
