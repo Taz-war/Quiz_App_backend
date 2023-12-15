@@ -64,10 +64,15 @@ io.on('connection', (socket) => {
         socket.join(room);
         // Store user data in the room's context (can be an array or object)
         addUserToRoom(room, userData);
-
+        const tempData={
+          id : socket.id,
+          studentName : userData.name,
+          questionCompleted:questionCompleted
+        }
+        console.log(socket.id)
         // Notify the admin module
        
-        io.to('admin').emit('userJoined', userData,steps,questionCompleted);
+        io.to('admin').emit('userJoined', tempData,steps);
     });
     socket.on('joinAdminRoom',(adminRoomName)=>{
       socket.join(adminRoomName)
