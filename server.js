@@ -65,11 +65,11 @@ io.on('connection', (socket) => {
         // Store user data in the room's context (can be an array or object)
         addUserToRoom(room, userData);
         const tempData={
-          id : socket.id,
+          id: userData.id,
           studentName : userData.name,
           questionCompleted:questionCompleted
         }
-        console.log(socket.id)
+        console.log(tempData)
         // Notify the admin module
        
         io.to('admin').emit('userJoined', tempData,steps);
@@ -214,7 +214,7 @@ async function run() {
       // console.log(query)
       // const projection = { roomName: 1, _id: 1 };
       const data = await StudentCollection.findOne(query);
-      console.log(data);
+      // console.log(data);
       // res.send(data)
       if (data != null) {
         res.send({ ...data, result: true });
