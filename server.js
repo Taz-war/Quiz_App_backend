@@ -58,43 +58,42 @@ var room_name = "C7h9EM";
 
 // ... previous imports and setup
 
-io.on('connection', (socket) => {
-    // Assuming user data is sent during connection
-    socket.on('joinRoom', (room, userData,steps,questionCompleted) => {
-        socket.join(room);
-        // Store user data in the room's context (can be an array or object)
-        addUserToRoom(room, userData);
-        const tempData={
-          id: userData.id,
-          studentName : userData.name,
-          questionCompleted:questionCompleted
-        }
-        console.log(tempData)
-        // Notify the admin module
-       
-        io.to('admin').emit('userJoined', tempData,steps);
-    });
-    socket.on('joinAdminRoom',(adminRoomName)=>{
-      socket.join(adminRoomName)
-    })
+io.on("connection", (socket) => {
+  // Assuming user data is sent during connection
+  socket.on("joinRoom", (room, userData, steps, questionCompleted) => {
+    socket.join(room);
+    // Store user data in the room's context (can be an array or object)
+    addUserToRoom(room, userData);
+    const tempData = {
+      id: userData.id,
+      studentName: userData.name,
+      questionCompleted: questionCompleted,
+    };
+    console.log(tempData);
+    // Notify the admin module
 
-    socket.on('disconnect', () => {
-        // Update room data and notify admin
-        const userData = removeUserFromRoom(socket.id);
-        io.to('admin').emit('userLeft', userData.room, userData);
-    });
+    io.to("admin").emit("userJoined", tempData, steps);
+  });
+  socket.on("joinAdminRoom", (adminRoomName) => {
+    socket.join(adminRoomName);
+  });
+
+  socket.on("disconnect", () => {
+    // Update room data and notify admin
+    const userData = removeUserFromRoom(socket.id);
+    io.to("admin").emit("userLeft", userData.room, userData);
+  });
 });
 
 // Dummy functions to manage room data
 function addUserToRoom(room, userData) {
-    // Implement adding user to room logic
+  // Implement adding user to room logic
 }
 
 function removeUserFromRoom(socketId) {
-    // Implement removing user from room logic
-    return { room: 'exampleRoom', userData: {} }; // Return user data
+  // Implement removing user from room logic
+  return { room: "exampleRoom", userData: {} }; // Return user data
 }
-
 
 server.listen(port, () => {
   console.log("Server listening on port 5000");
@@ -197,13 +196,32 @@ async function run() {
       }
       room_name = result;
       res.send(result);
-
-      // // Insert the document into the other collection
-      const insertResult = await StudentCollection.insertOne({
-        _id: new ObjectId(id),
-        roomName: result,
-      });
-      console.log(insertResult);
+      const query = { _id: new ObjectId(id) };
+      const data = await StudentCollection.findOne(query);
+      console.log(data);
+      if (data == null) {
+        // Insert the document into the other collection
+        const insertResult = await StudentCollection.insertOne({
+          _id: new ObjectId(id),
+          roomName: result,
+        });
+         console.log(insertResult);
+      } else {
+        const filter = { _id:new ObjectId(id) };
+        const options = { upsert: true };
+        const updatedQuiz = {
+          $set: {
+            roomName: result,
+          },
+        };
+        const data = await StudentCollection.updateOne(
+          filter,
+          updatedQuiz,
+          options
+        );
+        console.log(data)
+      }
+     
       // await studentRun(id)
     });
 
