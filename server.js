@@ -78,6 +78,11 @@ io.on("connection", (socket) => {
     socket.join(adminRoomName);
   });
 
+  // socket.on('startExam',(data)=>{
+  //   console.log('startExam',data)
+  //   socket.emit('showQuiz',data)
+  // })
+
   socket.on("disconnect", () => {
     // Update room data and notify admin
     const userData = removeUserFromRoom(socket.id);
