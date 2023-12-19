@@ -20,7 +20,7 @@ var io = socket(server, {
   },
 });
 
-var room_name = "C7h9EM";
+const roomUserCount = {};
 // io.on("connection", (socket) => {
 //   console.log("New client connected");
 
@@ -72,16 +72,19 @@ io.on("connection", (socket) => {
     console.log(tempData);
     // Notify the admin module
 
-    io.to("admin").emit("userJoined", tempData, steps);
+    let roomSize =io.sockets.adapter.rooms.get(room).size
+
+    io.to("admin").emit("userJoined", tempData, steps,room,roomSize);
   });
   socket.on("joinAdminRoom", (adminRoomName) => {
     socket.join(adminRoomName);
   });
 
-  // socket.on('startExam',(data)=>{
-  //   console.log('startExam',data)
-  //   socket.emit('showQuiz',data)
-  // })
+  socket.on('startExam',(data)=>{
+    console.log('startExam',data)
+    // socket.emit('showQuiz',data)
+    io.to(data.roomName).emit("examStarted", data);
+  })
 
   socket.on("disconnect", () => {
     // Update room data and notify admin
@@ -188,12 +191,11 @@ async function run() {
     ///launch quiz////
     app.get("/questionSet/:id", async (req, res) => {
       const id = req.params.id;
-      const d = req.body;
       var result = "";
       var characters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
       var charactersLength = characters.length;
-
+      
       for (var i = 0; i < 6; i++) {
         result += characters.charAt(
           Math.floor(Math.random() * charactersLength)
@@ -201,14 +203,21 @@ async function run() {
       }
       room_name = result;
       res.send(result);
+
+      const currentDate = new Date();
+      const formattedDate = formatDate(currentDate);
+
       const query = { _id: new ObjectId(id) };
       const data = await StudentCollection.findOne(query);
-      console.log(data);
+      const question= await QuestionCollection.findOne(query)
+      // console.log(questiontitle);
       if (data == null) {
         // Insert the document into the other collection
         const insertResult = await StudentCollection.insertOne({
           _id: new ObjectId(id),
           roomName: result,
+          questionTitle : question.questionSetTitle,
+          publishedDate: formattedDate
         });
          console.log(insertResult);
       } else {
@@ -217,6 +226,7 @@ async function run() {
         const updatedQuiz = {
           $set: {
             roomName: result,
+            publishedDate: formattedDate
           },
         };
         const data = await StudentCollection.updateOne(
@@ -277,6 +287,15 @@ async function run() {
 }
 run().catch(console.dir);
 
+
+function formatDate(date) {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // January is 0!
+  const year = date.getFullYear();
+
+  return `${month}/${day}/${year}`;
+}
+
 ///routes///
 // app.get("/", (req, res) => {
 //   res.send("Hello World!");
@@ -286,13 +305,3 @@ run().catch(console.dir);
 //   res.send("hello im from blog");
 // });
 
-io.on("connection", (socket) => {
-  socket.on("connectQuiz", (data) => {
-    console.log(data);
-    console.log("New client connected", socket.id);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-  });
-});
