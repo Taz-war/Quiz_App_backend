@@ -21,40 +21,7 @@ var io = socket(server, {
 });
 
 const roomUserCount = {};
-// io.on("connection", (socket) => {
-//   console.log("New client connected");
 
-//   // Joining a room
-
-//   socket.join(room_name);
-//   io.sockets.in(room_name).emit("connectedRoom", "you r connected to " + room_name)
-//   socket.on('questionComplete',(data)=>{
-//     // console.log('i dont know',data)
-//     io.sockets.in(room_name).emit("questionCompleted", data)
-//   })
-
-//   socket.on('totalQuestions',(data=>{
-//     io.sockets.in(room_name).emit("steps", data)
-//   }))
-//     // let roomSize = io.sockets.adapter.rooms.get(room_name).size - 1;
-//     // io.sockets.in(room_name).emit("roomSize", roomSize + "user joined this room");
-//   // socket.on("joinRoom", (room) => {
-//   //   socket.join(room);
-//   //   io.sockets.in(room).emit("connectedRoom", "you r connected to " + room);
-//   //   let roomSize = io.sockets.adapter.rooms.get(room).size - 1;
-//   //   io.sockets.in(room).emit("roomSize", roomSize + "user joined this room");
-//   //   console.log(`A user joined room: ${room}`);
-//   // });
-
-//   // Receiving a message and broadcasting it to the room
-//   socket.on("sendMessage", ({ room, message }) => {
-//     io.to(room).emit("message", message);
-//   });
-
-//   socket.on("disconnect", () => {
-//     console.log("Client disconnected");
-//   });
-// });
 
 // ... previous imports and setup
 
@@ -272,6 +239,13 @@ async function run() {
         updateStudentInfo,
         options
       );
+      res.send(result);
+    });
+
+    ///published questions////
+    app.get("/publishedQuestions", async (req, res) => {
+      const cursor = StudentCollection.find();
+      const result = await cursor.toArray();
       res.send(result);
     });
 
