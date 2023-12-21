@@ -22,7 +22,6 @@ var io = socket(server, {
 
 const roomUserCount = {};
 
-
 // ... previous imports and setup
 
 io.on("connection", (socket) => {
@@ -39,19 +38,19 @@ io.on("connection", (socket) => {
     console.log(tempData);
     // Notify the admin module
 
-    let roomSize =io.sockets.adapter.rooms.get(room).size
+    let roomSize = io.sockets.adapter.rooms.get(room).size;
 
-    io.to("admin").emit("userJoined", tempData, steps,room,roomSize);
+    io.to("admin").emit("userJoined", tempData, steps, room, roomSize);
   });
   socket.on("joinAdminRoom", (adminRoomName) => {
     socket.join(adminRoomName);
   });
 
-  socket.on('startExam',(data)=>{
-    console.log('startExam',data)
+  socket.on("startExam", (data) => {
+    console.log("startExam", data);
     // socket.emit('showQuiz',data)
     io.to(data.roomName).emit("examStarted", data);
-  })
+  });
 
   socket.on("disconnect", () => {
     // Update room data and notify admin
@@ -162,7 +161,7 @@ async function run() {
       var characters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
       var charactersLength = characters.length;
-      
+
       for (var i = 0; i < 6; i++) {
         result += characters.charAt(
           Math.floor(Math.random() * charactersLength)
@@ -176,24 +175,24 @@ async function run() {
 
       const query = { _id: new ObjectId(id) };
       const data = await StudentCollection.findOne(query);
-      const question= await QuestionCollection.findOne(query)
+      const question = await QuestionCollection.findOne(query);
       // console.log(questiontitle);
       if (data == null) {
         // Insert the document into the other collection
         const insertResult = await StudentCollection.insertOne({
           _id: new ObjectId(id),
           roomName: result,
-          questionTitle : question.questionSetTitle,
-          publishedDate: formattedDate
+          questionTitle: question.questionSetTitle,
+          publishedDate: formattedDate,
         });
-         console.log(insertResult);
+        console.log(insertResult);
       } else {
-        const filter = { _id:new ObjectId(id) };
+        const filter = { _id: new ObjectId(id) };
         const options = { upsert: true };
         const updatedQuiz = {
           $set: {
             roomName: result,
-            publishedDate: formattedDate
+            publishedDate: formattedDate,
           },
         };
         const data = await StudentCollection.updateOne(
@@ -201,9 +200,9 @@ async function run() {
           updatedQuiz,
           options
         );
-        console.log(data)
+        console.log(data);
       }
-     
+
       // await studentRun(id)
     });
 
@@ -249,6 +248,34 @@ async function run() {
       res.send(result);
     });
 
+    ///get report///
+    app.get("/publishedQuestions/:id", async (req, res) => {
+      const id = req.params.id;
+      const pipeline = [
+        { $match: { _id: new ObjectId(id) } },
+        { $unwind: "$students" },
+        { $project: { _id: 0,'id': '$students.id', answer: "$students.answer" } },
+      ];
+      const answers = await StudentCollection.aggregate(pipeline).toArray();
+      // console.log(answers)
+      const TeacherPipeline = [
+        { $match: { _id: new ObjectId(id) } },
+        { $unwind: "$questions" },
+        {
+          $project: {
+            _id: 0,
+            Answer: "$questions.Answer",
+            Point: "$questions.Point",
+          },
+        },
+      ];
+      const teacherAnswers = await QuestionCollection.aggregate(
+        TeacherPipeline
+      ).toArray();
+      console.log(answers);
+      console.log(teacherAnswers);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
@@ -261,10 +288,9 @@ async function run() {
 }
 run().catch(console.dir);
 
-
 function formatDate(date) {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // January is 0!
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // January is 0!
   const year = date.getFullYear();
 
   return `${month}/${day}/${year}`;
@@ -278,4 +304,3 @@ function formatDate(date) {
 // app.get("/blog", (req, res) => {
 //   res.send("hello im from blog");
 // });
-
