@@ -101,7 +101,16 @@ async function run() {
     app.get("/questionSet", async (req, res) => {
       const cursor = QuestionCollection.find();
       const result = await cursor.toArray();
-      res.send(result);
+
+      const projection = { _id: 1 };
+      const studentCursor = StudentCollection.find({}, { projection });
+      const studentResult = await studentCursor.toArray()
+      console.log(studentResult)
+      // res.send(result);
+      res.json({
+        questions: result,
+        studentIds: studentResult
+      });
     });
 
     app.get("/EditQuiz/:id", async (req, res) => {
