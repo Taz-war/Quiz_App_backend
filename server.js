@@ -96,6 +96,7 @@ async function run() {
     const database = client.db("QuizDB");
     const QuestionCollection = database.collection("Questions");
     const StudentCollection = database.collection("StudentCollection");
+    const ReportCollection =database.collection("ReportCollection")
     ///get request///
     app.get("/questionSet", async (req, res) => {
       const cursor = QuestionCollection.find();
@@ -254,10 +255,9 @@ async function run() {
       const pipeline = [
         { $match: { _id: new ObjectId(id) } },
         { $unwind: "$students" },
-        { $project: { _id: 0,'id': '$students.id', answer: "$students.answer" } },
+        { $project: { _id: 0,'id': '$students.id', answer: "$students.answer",'name':'$students.name','email':'$students.email' } },
       ];
-      const answers = await StudentCollection.aggregate(pipeline).toArray();
-      // console.log(answers)
+      const studentAnswers = await StudentCollection.aggregate(pipeline).toArray();
       const TeacherPipeline = [
         { $match: { _id: new ObjectId(id) } },
         { $unwind: "$questions" },
@@ -269,11 +269,19 @@ async function run() {
           },
         },
       ];
-      const teacherAnswers = await QuestionCollection.aggregate(
-        TeacherPipeline
-      ).toArray();
-      console.log(answers);
-      console.log(teacherAnswers);
+      const teacherAnswers = await QuestionCollection.aggregate(TeacherPipeline).toArray();
+      const findResult = await ReportCollection.findOne({_id: new ObjectId(id)});
+      if (findResult === null) {
+        const reports = await calculateMarks(studentAnswers, teacherAnswers);
+        res.send(reports)
+        const insertResult = await ReportCollection.insertOne({
+          _id: new ObjectId(id),
+          StudentsReport: reports
+        });
+      }else{
+        res.send(findResult.StudentsReport)
+      }
+
     });
 
     // Send a ping to confirm a successful connection
@@ -295,6 +303,45 @@ function formatDate(date) {
 
   return `${month}/${day}/${year}`;
 }
+
+////report generating function////
+function calculateMarks(students, actualAnswers) {
+  // Convert actual answers to a more accessible format
+  const answerKey = {};
+  actualAnswers.forEach(answerObj => {
+      if (Array.isArray(answerObj.Answer)) {
+          answerObj.Answer.forEach(ans => {
+              answerKey[ans.trim().toLowerCase()] = parseInt(answerObj.Point, 10);
+          });
+      } else {
+          let answer = typeof answerObj.Answer === 'boolean' ? answerObj.Answer : answerObj.Answer.trim().toLowerCase();
+          answerKey[answer] = parseInt(answerObj.Point, 10);
+      }
+  });
+
+  // Calculate marks for each student
+  const studentMarks = students.map(student => {
+      let totalMarks = 0;
+
+      for (const questionId in student.answer) {
+          let studentAnswer = student.answer[questionId];
+          studentAnswer = typeof studentAnswer === 'boolean' ? studentAnswer : studentAnswer.trim().toLowerCase();
+
+          if (answerKey[studentAnswer] !== undefined) {
+              totalMarks += answerKey[studentAnswer];
+          }
+      }
+
+      return { 
+          id: student.id, 
+          totalMarks,
+          name: student.name,
+          email: student.email
+      };
+  });
+   return studentMarks.sort((a, b) => b.totalMarks - a.totalMarks);
+}
+
 
 ///routes///
 // app.get("/", (req, res) => {
