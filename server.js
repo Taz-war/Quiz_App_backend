@@ -15,7 +15,8 @@ const server = http.createServer(app);
 // const io = socketIo(server);
 var io = socket(server, {
   cors: {
-    origin: "http://localhost:4000",
+    // origin: "http://localhost:4000",
+    origin: "*",
     // methods: ["GET", "POST"]
   },
 });
@@ -96,7 +97,8 @@ async function run() {
     const database = client.db("QuizDB");
     const QuestionCollection = database.collection("Questions");
     const StudentCollection = database.collection("StudentCollection");
-    const ReportCollection =database.collection("ReportCollection")
+    const ReportCollection = database.collection("ReportCollection");
+    const UserCollection = database.collection("UserCollection");
     ///get request///
     app.get("/questionSet", async (req, res) => {
       const cursor = QuestionCollection.find();
@@ -104,12 +106,12 @@ async function run() {
 
       const projection = { _id: 1 };
       const studentCursor = StudentCollection.find({}, { projection });
-      const studentResult = await studentCursor.toArray()
-      console.log(studentResult)
+      const studentResult = await studentCursor.toArray();
+      console.log(studentResult);
       // res.send(result);
       res.json({
         questions: result,
-        studentIds: studentResult
+        studentIds: studentResult,
       });
     });
 
@@ -264,9 +266,19 @@ async function run() {
       const pipeline = [
         { $match: { _id: new ObjectId(id) } },
         { $unwind: "$students" },
-        { $project: { _id: 0,'id': '$students.id', answer: "$students.answer",'name':'$students.name','email':'$students.email' } },
+        {
+          $project: {
+            _id: 0,
+            id: "$students.id",
+            answer: "$students.answer",
+            name: "$students.name",
+            email: "$students.email",
+          },
+        },
       ];
-      const studentAnswers = await StudentCollection.aggregate(pipeline).toArray();
+      const studentAnswers = await StudentCollection.aggregate(
+        pipeline
+      ).toArray();
       const TeacherPipeline = [
         { $match: { _id: new ObjectId(id) } },
         { $unwind: "$questions" },
@@ -278,19 +290,42 @@ async function run() {
           },
         },
       ];
-      const teacherAnswers = await QuestionCollection.aggregate(TeacherPipeline).toArray();
-      const findResult = await ReportCollection.findOne({_id: new ObjectId(id)});
+      const teacherAnswers = await QuestionCollection.aggregate(
+        TeacherPipeline
+      ).toArray();
+      const findResult = await ReportCollection.findOne({
+        _id: new ObjectId(id),
+      });
       if (findResult === null) {
         const reports = await calculateMarks(studentAnswers, teacherAnswers);
-        res.send(reports)
+        res.send(reports);
         const insertResult = await ReportCollection.insertOne({
           _id: new ObjectId(id),
-          StudentsReport: reports
+          StudentsReport: reports,
         });
-      }else{
-        res.send(findResult.StudentsReport)
+      } else {
+        res.send(findResult.StudentsReport);
       }
+    });
 
+    ///Sign up functionality///
+    app.post("/teacher/signUp/:id", async (req, res) => {
+      const id = req.params.id;
+      const user = req.body;
+      res.send({ id, user });
+      console.log({ id, user });
+      return;
+      const newUser = {
+        _id: new ObjectId(id),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        organizationType: user.organizationType,
+        organizationName: user.organizationName,
+        role: user.role,
+        phoneNumber: user.phoneNumber,
+      };
+      const result = await UserCollection.insertOne(newUser);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
@@ -317,40 +352,45 @@ function formatDate(date) {
 function calculateMarks(students, actualAnswers) {
   // Convert actual answers to a more accessible format
   const answerKey = {};
-  actualAnswers.forEach(answerObj => {
-      if (Array.isArray(answerObj.Answer)) {
-          answerObj.Answer.forEach(ans => {
-              answerKey[ans.trim().toLowerCase()] = parseInt(answerObj.Point, 10);
-          });
-      } else {
-          let answer = typeof answerObj.Answer === 'boolean' ? answerObj.Answer : answerObj.Answer.trim().toLowerCase();
-          answerKey[answer] = parseInt(answerObj.Point, 10);
-      }
+  actualAnswers.forEach((answerObj) => {
+    if (Array.isArray(answerObj.Answer)) {
+      answerObj.Answer.forEach((ans) => {
+        answerKey[ans.trim().toLowerCase()] = parseInt(answerObj.Point, 10);
+      });
+    } else {
+      let answer =
+        typeof answerObj.Answer === "boolean"
+          ? answerObj.Answer
+          : answerObj.Answer.trim().toLowerCase();
+      answerKey[answer] = parseInt(answerObj.Point, 10);
+    }
   });
 
   // Calculate marks for each student
-  const studentMarks = students.map(student => {
-      let totalMarks = 0;
+  const studentMarks = students.map((student) => {
+    let totalMarks = 0;
 
-      for (const questionId in student.answer) {
-          let studentAnswer = student.answer[questionId];
-          studentAnswer = typeof studentAnswer === 'boolean' ? studentAnswer : studentAnswer.trim().toLowerCase();
+    for (const questionId in student.answer) {
+      let studentAnswer = student.answer[questionId];
+      studentAnswer =
+        typeof studentAnswer === "boolean"
+          ? studentAnswer
+          : studentAnswer.trim().toLowerCase();
 
-          if (answerKey[studentAnswer] !== undefined) {
-              totalMarks += answerKey[studentAnswer];
-          }
+      if (answerKey[studentAnswer] !== undefined) {
+        totalMarks += answerKey[studentAnswer];
       }
+    }
 
-      return { 
-          id: student.id, 
-          totalMarks,
-          name: student.name,
-          email: student.email
-      };
+    return {
+      id: student.id,
+      totalMarks,
+      name: student.name,
+      email: student.email,
+    };
   });
-   return studentMarks.sort((a, b) => b.totalMarks - a.totalMarks);
+  return studentMarks.sort((a, b) => b.totalMarks - a.totalMarks);
 }
-
 
 ///routes///
 // app.get("/", (req, res) => {
