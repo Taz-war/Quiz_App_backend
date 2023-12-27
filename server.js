@@ -312,17 +312,9 @@ async function run() {
     app.post("/teacher/signUp/:id", async (req, res) => {
       const id = req.params.id;
       const user = req.body;
-      res.send({ id, user });
-      console.log({ id, user });
-      return;
       const newUser = {
-        _id: new ObjectId(id),
-        firstName: user.firstName,
-        lastName: user.lastName,
-        organizationType: user.organizationType,
-        organizationName: user.organizationName,
-        role: user.role,
-        phoneNumber: user.phoneNumber,
+        _id: id,
+        ...user,
       };
       const result = await UserCollection.insertOne(newUser);
       res.send(result);
