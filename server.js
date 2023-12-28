@@ -100,8 +100,10 @@ async function run() {
     const ReportCollection = database.collection("ReportCollection");
     const UserCollection = database.collection("UserCollection");
     ///get request///
-    app.get("/questionSet", async (req, res) => {
-      const cursor = QuestionCollection.find();
+    app.get("/questionSet/:id", async (req, res) => {
+      const id = req.params.id
+      const query = { _id: id };
+      const cursor = QuestionCollection.find(query);
       const result = await cursor.toArray();
 
       const projection = { _id: 1 };
@@ -123,10 +125,17 @@ async function run() {
     });
 
     ///post request////
-    app.post("/questionSet", async (req, res) => {
+    app.post("/questionSet/:id", async (req, res) => {
+      const id = req.params.id
       const question = req.body;
       console.log("new question created");
-      const result = await QuestionCollection.insertOne(question);
+      const newQuestion={
+        _id:id,
+        ...question
+      }
+      console.log(id)
+      console.log(newQuestion)
+      const result = await QuestionCollection.insertOne({_id:id,...question});
       res.send(result);
     });
 
