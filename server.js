@@ -143,7 +143,7 @@ async function run() {
     app.put("/EditQuiz/:id", async (req, res) => {
       const id = req.params.id;
       const Quiz = req.body;
-      const filter = { _id: new ObjectId(id) };
+      const filter = { _id: id };
       const options = { upsert: true };
       console.log("heelol ami tazwer", id);
       const updatedQuiz = {
@@ -165,7 +165,8 @@ async function run() {
     app.delete("/questionset/:id", async (req, res) => {
       const id = req.params.id;
       const ids = id.split(",");
-      const idsToDelete = ids.map((id) => new ObjectId(id));
+      const idsToDelete = ids.map((id) => id);
+      console.log(idsToDelete)
       const result = await QuestionCollection.deleteMany({
         _id: {
           $in: idsToDelete,
