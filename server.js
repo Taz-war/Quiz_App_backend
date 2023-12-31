@@ -36,7 +36,7 @@ io.on("connection", (socket) => {
       studentName: userData.name,
       questionCompleted: questionCompleted,
     };
-    console.log(tempData);
+
     // Notify the admin module
 
     let roomSize = io.sockets.adapter.rooms.get(room).size;
@@ -48,7 +48,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("startExam", (data) => {
-    console.log("startExam", data);
     // socket.emit('showQuiz',data)
     io.to(data.roomName).emit("examStarted", data);
   });
@@ -102,14 +101,14 @@ async function run() {
     ///get request///
     app.get("/questionSet/:id", async (req, res) => {
       const id = req.params.id
-      const query = { _id: id };
+      const query = { userId: id };
       const cursor = QuestionCollection.find(query);
       const result = await cursor.toArray();
 
       const projection = { _id: 1 };
       const studentCursor = StudentCollection.find({}, { projection });
       const studentResult = await studentCursor.toArray();
-      console.log(studentResult);
+
       // res.send(result);
       res.json({
         questions: result,
@@ -125,17 +124,11 @@ async function run() {
     });
 
     ///post request////
-    app.post("/questionSet/:id", async (req, res) => {
+    app.post("/questionSet", async (req, res) => {
       const id = req.params.id
       const question = req.body;
       console.log("new question created");
-      const newQuestion={
-        _id:id,
-        ...question
-      }
-      console.log(id)
-      console.log(newQuestion)
-      const result = await QuestionCollection.insertOne({_id:id,...question});
+      const result = await QuestionCollection.insertOne(question);
       res.send(result);
     });
 
@@ -145,7 +138,6 @@ async function run() {
       const Quiz = req.body;
       const filter = { _id: new ObjectId(id) };
       const options = { upsert: true };
-      console.log("heelol ami tazwer", id);
       const updatedQuiz = {
         $set: {
           date: Quiz.date,
@@ -172,12 +164,11 @@ async function run() {
         },
       });
       res.send(result);
-      // console.log(result);
     });
 
     ///launch quiz////
-    app.get("/questionSet/:id", async (req, res) => {
-      const id = req.params.id;
+    app.get("/LaunchQuestionSet/:QId", async (req, res) => {
+      const id = req.params.QId;
       var result = "";
       var characters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -197,11 +188,12 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const data = await StudentCollection.findOne(query);
       const question = await QuestionCollection.findOne(query);
-      // console.log(questiontitle);
+      console.log(question.userId);
       if (data == null) {
         // Insert the document into the other collection
         const insertResult = await StudentCollection.insertOne({
           _id: new ObjectId(id),
+          userId:question.userId,
           roomName: result,
           questionTitle: question.questionSetTitle,
           publishedDate: formattedDate,
@@ -263,8 +255,10 @@ async function run() {
     });
 
     ///published questions////
-    app.get("/publishedQuestions", async (req, res) => {
-      const cursor = StudentCollection.find();
+    app.get("/publishedQuestions/:uid", async (req, res) => {
+      const uid =req.params.uid
+      const query ={userId:uid}
+      const cursor = StudentCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -328,6 +322,19 @@ async function run() {
       const result = await UserCollection.insertOne(newUser);
       res.send(result);
     });
+
+    ///search user for google sign in///
+    app.get('/searchUser/:id',async (req,res)=>{
+      const id = req.params.id
+      const query = {_id: id}
+      const user = await UserCollection.findOne(query);
+      console.log(user)
+      if (user=== null ) { 
+        res.send(false)
+      }else{
+        res.send(true)
+      }
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
