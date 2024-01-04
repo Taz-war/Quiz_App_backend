@@ -188,7 +188,6 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const data = await StudentCollection.findOne(query);
       const question = await QuestionCollection.findOne(query);
-      console.log(question.userId);
       if (data == null) {
         // Insert the document into the other collection
         const insertResult = await StudentCollection.insertOne({
@@ -198,7 +197,6 @@ async function run() {
           questionTitle: question.questionSetTitle,
           publishedDate: formattedDate,
         });
-        console.log(insertResult);
       } else {
         const filter = { _id: new ObjectId(id) };
         const options = { upsert: true };
@@ -213,7 +211,7 @@ async function run() {
           updatedQuiz,
           options
         );
-        console.log(data);
+
       }
 
       // await studentRun(id)
@@ -223,10 +221,8 @@ async function run() {
     app.get("/student/:room", async (req, res) => {
       logInRoom = req.params.room;
       const query = { roomName: logInRoom };
-      // console.log(query)
       // const projection = { roomName: 1, _id: 1 };
       const data = await StudentCollection.findOne(query);
-      // console.log(data);
       // res.send(data)
       if (data != null) {
         res.send({ ...data, result: true });
@@ -328,7 +324,6 @@ async function run() {
       const id = req.params.id
       const query = {_id: id}
       const user = await UserCollection.findOne(query);
-      console.log(user)
       if (user=== null ) { 
         res.send(false)
       }else{
@@ -340,8 +335,8 @@ async function run() {
     app.get('/userInfo/:id',async (req,res) =>{
       const id = req.params.id
       const query = { _id: id };
-      const cursor = UserCollection.find(query);
-      const result = await cursor.toArray();
+      const result =await UserCollection.findOne(query);
+      // const result = await cursor.toArray();
 
       console.log(result)
       res.send(result)
