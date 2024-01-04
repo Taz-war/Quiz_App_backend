@@ -336,6 +336,17 @@ async function run() {
       }
     })
 
+    ///get user Info///
+    app.get('/userInfo/:id',async (req,res) =>{
+      const id = req.params.id
+      const query = { _id: id };
+      const cursor = UserCollection.find(query);
+      const result = await cursor.toArray();
+
+      console.log(result)
+      res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
