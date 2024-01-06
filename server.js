@@ -260,7 +260,7 @@ async function run() {
     });
 
     ///get report///
-    app.get("/publishedQuestions/:id", async (req, res) => {
+    app.get("/getReports/:id", async (req, res) => {
       const id = req.params.id;
       const pipeline = [
         { $match: { _id: new ObjectId(id) } },
