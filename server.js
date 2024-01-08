@@ -342,6 +342,15 @@ async function run() {
       res.send(result)
     })
 
+    ///get rooms ///
+    app.get('/getRooms/:uid',async(req,res)=>{
+      const id = req.params.uid
+      const query = { userId: id };
+      const cursor = StudentCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
