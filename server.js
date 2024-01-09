@@ -96,9 +96,13 @@ async function run() {
     const StudentCollection = database.collection("StudentCollection");
     const ReportCollection = database.collection("ReportCollection");
     const UserCollection = database.collection("UserCollection");
+
+    app.get("/", async (req, res) => {
+      res.json({ name: "fahim" });
+    });
     ///get request///
     app.get("/questionSet/:id", async (req, res) => {
-      const id = req.params.id
+      const id = req.params.id;
       const query = { userId: id };
       const cursor = QuestionCollection.find(query);
       const result = await cursor.toArray();
@@ -123,7 +127,7 @@ async function run() {
 
     ///post request////
     app.post("/questionSet", async (req, res) => {
-      const id = req.params.id
+      const id = req.params.id;
       const question = req.body;
       console.log("new question created");
       const result = await QuestionCollection.insertOne(question);
@@ -190,7 +194,7 @@ async function run() {
         // Insert the document into the other collection
         const insertResult = await StudentCollection.insertOne({
           _id: new ObjectId(id),
-          userId:question.userId,
+          userId: question.userId,
           roomName: result,
           questionTitle: question.questionSetTitle,
           publishedDate: formattedDate,
@@ -209,7 +213,6 @@ async function run() {
           updatedQuiz,
           options
         );
-
       }
 
       // await studentRun(id)
@@ -250,8 +253,8 @@ async function run() {
 
     ///published questions////
     app.get("/publishedQuestions/:uid", async (req, res) => {
-      const uid =req.params.uid
-      const query ={userId:uid}
+      const uid = req.params.uid;
+      const query = { userId: uid };
       const cursor = StudentCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
@@ -318,36 +321,36 @@ async function run() {
     });
 
     ///search user for google sign in///
-    app.get('/searchUser/:id',async (req,res)=>{
-      const id = req.params.id
-      const query = {_id: id}
+    app.get("/searchUser/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: id };
       const user = await UserCollection.findOne(query);
-      if (user=== null ) { 
-        res.send(false)
-      }else{
-        res.send(true)
+      if (user === null) {
+        res.send(false);
+      } else {
+        res.send(true);
       }
-    })
+    });
 
     ///get user Info///
-    app.get('/userInfo/:id',async (req,res) =>{
-      const id = req.params.id
+    app.get("/userInfo/:id", async (req, res) => {
+      const id = req.params.id;
       const query = { _id: id };
-      const result =await UserCollection.findOne(query);
+      const result = await UserCollection.findOne(query);
       // const result = await cursor.toArray();
 
-      console.log(result)
-      res.send(result)
-    })
+      console.log(result);
+      res.send(result);
+    });
 
     ///get rooms ///
-    app.get('/getRooms/:uid',async(req,res)=>{
-      const id = req.params.uid
+    app.get("/getRooms/:uid", async (req, res) => {
+      const id = req.params.uid;
       const query = { userId: id };
       const cursor = StudentCollection.find(query);
       const result = await cursor.toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
