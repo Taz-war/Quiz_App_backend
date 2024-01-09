@@ -15,9 +15,7 @@ const server = http.createServer(app);
 // const io = socketIo(server);
 var io = socket(server, {
   cors: {
-    // origin: "http://localhost:4000",
     origin: "*",
-    // methods: ["GET", "POST"]
   },
 });
 
