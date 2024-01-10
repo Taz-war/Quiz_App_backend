@@ -352,6 +352,12 @@ async function run() {
       res.send(result);
     });
 
+    ///update teacher profile///
+    app.put("/teacherProfile/:id",async(req,res)=>{
+      const id = req.params.id;
+      const body = req.body
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
