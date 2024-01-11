@@ -9,7 +9,7 @@ const socket = require("socket.io");
 const port = process.env.PORT || 5000;
 
 ///midleware///
-app.use(cors({ origin: "http://localhost:4000" }));
+app.use(cors({ origin: "https://quiz-ccrafters-lw896004c-taz-war.vercel.app" }));
 app.use(express.json());
 const server = http.createServer(app);
 // const io = socketIo(server);
@@ -356,6 +356,17 @@ async function run() {
     app.put("/teacherProfile/:id",async(req,res)=>{
       const id = req.params.id;
       const body = req.body
+      const filter = { _id: id };
+      const options = { upsert: true };
+      const updatedProfileInfo ={
+         $set: body 
+      }
+      const result = await UserCollection.updateOne(
+        filter,
+        updatedProfileInfo,
+        options
+      );
+      res.send(result)
     })
 
     // Send a ping to confirm a successful connection
