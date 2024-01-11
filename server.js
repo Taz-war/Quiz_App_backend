@@ -9,7 +9,7 @@ const socket = require("socket.io");
 const port = process.env.PORT || 5000;
 
 ///midleware///
-app.use(cors({ origin: "https://quiz-ccrafters-lw896004c-taz-war.vercel.app" }));
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 const server = http.createServer(app);
 // const io = socketIo(server);
