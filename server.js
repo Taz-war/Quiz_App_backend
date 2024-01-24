@@ -371,6 +371,14 @@ async function run() {
       res.send(result)
     })
 
+    ///handle delete teacher profile///
+    app.delete('/teacherProfile/delete/:uid',async(req,res)=>{
+      id=req.params.uid
+      const query = { _id: id };
+      const result = await UserCollection.deleteOne(query);
+      res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
