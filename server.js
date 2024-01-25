@@ -73,8 +73,6 @@ server.listen(port, () => {
 });
 
 ///mongo db user name & password///
-console.log(process.env.DB_USER)
-console.log(process.env.DB_PASS)
 
 
 const uri =
@@ -131,7 +129,6 @@ async function run() {
     app.post("/questionSet", async (req, res) => {
       const id = req.params.id;
       const question = req.body;
-      console.log("new question created");
       const result = await QuestionCollection.insertOne(question);
       res.send(result);
     });
@@ -339,9 +336,6 @@ async function run() {
       const id = req.params.id;
       const query = { _id: id };
       const result = await UserCollection.findOne(query);
-      // const result = await cursor.toArray();
-
-      console.log(result);
       res.send(result);
     });
 
