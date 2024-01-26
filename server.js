@@ -256,6 +256,7 @@ async function run() {
       const query = { userId: uid };
       const cursor = StudentCollection.find(query);
       const result = await cursor.toArray();
+      // console.log(result)
       res.send(result);
     });
 
@@ -367,10 +368,20 @@ async function run() {
 
     ///handle delete teacher profile///
     app.delete('/teacherProfile/delete/:uid',async(req,res)=>{
-      id=req.params.uid
+      const id=req.params.uid
       const query = { _id: id };
       const result = await UserCollection.deleteOne(query);
       res.send(result)
+    })
+
+    ///handle delete report///
+    app.delete('/reports/delete/:id',async(req,res)=>{
+      const id = req.params.id
+      const query={_id :new ObjectId(id)}
+      // const result = await ReportCollection.deleteOne(query)
+      console.log(id)
+      // console.log(result)
+      // res.send(result)
     })
 
     // Send a ping to confirm a successful connection
