@@ -3,10 +3,11 @@ const req = require("express/lib/request");
 const res = require("express/lib/response");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-require('dotenv').config()
+require("dotenv").config();
 const app = express();
 const http = require("http");
 const socket = require("socket.io");
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 
 ///midleware///
@@ -74,9 +75,7 @@ server.listen(port, () => {
 
 ///mongo db user name & password///
 
-
-const uri =
-  `mongodb+srv://fahimtazwer:ALETgHxkxEf2sl8B@fahim1.p8agypj.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://fahimtazwer:ALETgHxkxEf2sl8B@fahim1.p8agypj.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -96,6 +95,17 @@ async function run() {
     const StudentCollection = database.collection("StudentCollection");
     const ReportCollection = database.collection("ReportCollection");
     const UserCollection = database.collection("UserCollection");
+
+    ///auth related api///
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ success: true });
+    });
+
+    ///Service related api///
 
     app.get("/", async (req, res) => {
       res.json({ name: "fahim" });
@@ -350,39 +360,39 @@ async function run() {
     });
 
     ///update teacher profile///
-    app.put("/teacherProfile/:id",async(req,res)=>{
+    app.put("/teacherProfile/:id", async (req, res) => {
       const id = req.params.id;
-      const body = req.body
+      const body = req.body;
       const filter = { _id: id };
       const options = { upsert: true };
-      const updatedProfileInfo ={
-         $set: body 
-      }
+      const updatedProfileInfo = {
+        $set: body,
+      };
       const result = await UserCollection.updateOne(
         filter,
         updatedProfileInfo,
         options
       );
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     ///handle delete teacher profile///
-    app.delete('/teacherProfile/delete/:uid',async(req,res)=>{
-      const id=req.params.uid
+    app.delete("/teacherProfile/delete/:uid", async (req, res) => {
+      const id = req.params.uid;
       const query = { _id: id };
       const result = await UserCollection.deleteOne(query);
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     ///handle delete report///
-    app.delete('/reports/delete/:id',async(req,res)=>{
-      const id = req.params.id
-      const query={_id :new ObjectId(id)}
+    app.delete("/reports/delete/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
       // const result = await ReportCollection.deleteOne(query)
-      console.log(id)
+      console.log(id);
       // console.log(result)
       // res.send(result)
-    })
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
