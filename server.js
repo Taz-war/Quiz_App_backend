@@ -91,6 +91,7 @@ const client = new MongoClient(uri, {
 ///custom middleWare///
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
+  console.log('assalamualaikum',token)
   if (!token) {
     return res.status(401).send({ message: "unauthorised access" });
   }
@@ -119,7 +120,6 @@ async function run() {
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "1h",
       });
-      console.log(token);
       res
         .cookie("token", token, {
           httpOnly: true,
@@ -141,6 +141,7 @@ async function run() {
     ///get request///
     app.get("/questionSet/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
+      console.log(req.query.email)
       console.log('token owner info',req.user)
       const query = { userId: id };
       const cursor = QuestionCollection.find(query);
