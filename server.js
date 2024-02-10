@@ -208,7 +208,7 @@ async function run() {
     });
 
     ///launch quiz////
-    app.get("/LaunchQuestionSet/:QId", async (req, res) => {
+    app.get("/LaunchQuestionSet/:QId",verifyToken,async (req, res) => {
       const id = req.params.QId;
       var result = "";
       var characters =
@@ -373,7 +373,7 @@ async function run() {
     });
 
     ///get user Info///
-    app.get("/userInfo/:id", async (req, res) => {
+    app.get("/userInfo/:id", verifyToken,async (req, res) => {
       const id = req.params.id;
       const query = { _id: id };
       const result = await UserCollection.findOne(query);
