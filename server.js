@@ -166,7 +166,7 @@ async function run() {
     });
 
     ///post request////
-    app.post("/questionSet", async (req, res) => {
+    app.post("/questionSet",verifyToken, async (req, res) => {
       const id = req.params.id;
       const question = req.body;
       const result = await QuestionCollection.insertOne(question);
@@ -174,7 +174,7 @@ async function run() {
     });
 
     ///update request///
-    app.put("/EditQuiz/:id", async (req, res) => {
+    app.put("/EditQuiz/:id", verifyToken,async (req, res) => {
       const id = req.params.id;
       const Quiz = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -195,7 +195,7 @@ async function run() {
     });
 
     ///delete post///
-    app.delete("/questionset/:id", async (req, res) => {
+    app.delete("/questionset/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const ids = id.split(",");
       const idsToDelete = ids.map((id) => new ObjectId(id));
@@ -291,7 +291,7 @@ async function run() {
     });
 
     ///published questions////
-    app.get("/publishedQuestions/:uid", async (req, res) => {
+    app.get("/publishedQuestions/:uid", verifyToken,async (req, res) => {
       const uid = req.params.uid;
       const query = { userId: uid };
       const cursor = StudentCollection.find(query);
@@ -301,7 +301,7 @@ async function run() {
     });
 
     ///get report///
-    app.get("/getReports/:id", async (req, res) => {
+    app.get("/getReports/:id", verifyToken,async (req, res) => {
       const id = req.params.id;
       const pipeline = [
         { $match: { _id: new ObjectId(id) } },
@@ -373,7 +373,7 @@ async function run() {
     });
 
     ///get user Info///
-    app.get("/userInfo/:id", async (req, res) => {
+    app.get("/userInfo/:id", verifyToken,async (req, res) => {
       const id = req.params.id;
       const query = { _id: id };
       const result = await UserCollection.findOne(query);
@@ -381,7 +381,7 @@ async function run() {
     });
 
     ///get rooms ///
-    app.get("/getRooms/:uid", async (req, res) => {
+    app.get("/getRooms/:uid", verifyToken,async (req, res) => {
       const id = req.params.uid;
       const query = { userId: id };
       const cursor = StudentCollection.find(query);
@@ -390,7 +390,7 @@ async function run() {
     });
 
     ///update teacher profile///
-    app.put("/teacherProfile/:id", async (req, res) => {
+    app.put("/teacherProfile/:id", verifyToken,async (req, res) => {
       const id = req.params.id;
       const body = req.body;
       const filter = { _id: id };
@@ -407,7 +407,7 @@ async function run() {
     });
 
     ///handle delete teacher profile///
-    app.delete("/teacherProfile/delete/:uid", async (req, res) => {
+    app.delete("/teacherProfile/delete/:uid",verifyToken, async (req, res) => {
       const id = req.params.uid;
       const query = { _id: id };
       const result = await UserCollection.deleteOne(query);
