@@ -208,7 +208,7 @@ async function run() {
     });
 
     ///launch quiz////
-    app.get("/LaunchQuestionSet/:QId", async (req, res) => {
+    app.get("/LaunchQuestionSet/:QId",verifyToken,async (req, res) => {
       const id = req.params.QId;
       var result = "";
       var characters =
