@@ -29,7 +29,7 @@ const roomUserCount = {};
 
 io.on("connection", (socket) => {
   // Assuming user data is sent during connection
-  socket.on("joinRoom", (room, userData, steps, questionCompleted) => {
+  socket.on("joinRoom", (room, userData,questionCompleted) => {
     socket.join(room);
     // Store user data in the room's context (can be an array or object)
     addUserToRoom(room, userData);
@@ -43,8 +43,12 @@ io.on("connection", (socket) => {
 
     let roomSize = io.sockets.adapter.rooms.get(room).size;
 
-    io.to("admin").emit("userJoined", tempData, steps, room, roomSize);
+    io.to("admin").emit("userJoined", tempData, room, roomSize);
   });
+  socket.on('QId',(id)=>{
+    io.to("admin").emit("liveQid", id);
+  })
+
   socket.on("joinAdminRoom", (adminRoomName) => {
     socket.join(adminRoomName);
   });
