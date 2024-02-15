@@ -29,7 +29,7 @@ const roomUserCount = {};
 
 io.on("connection", (socket) => {
   // Assuming user data is sent during connection
-  socket.on("joinRoom", (room, userData,questionCompleted) => {
+  socket.on("joinRoom", (room, userData, steps, questionCompleted) => {
     socket.join(room);
     // Store user data in the room's context (can be an array or object)
     addUserToRoom(room, userData);
@@ -43,12 +43,8 @@ io.on("connection", (socket) => {
 
     let roomSize = io.sockets.adapter.rooms.get(room).size;
 
-    io.to("admin").emit("userJoined", tempData, room, roomSize);
+    io.to("admin").emit("userJoined", tempData, steps, room, roomSize);
   });
-  socket.on('QId',(id)=>{
-    io.to("admin").emit("liveQid", id);
-  })
-
   socket.on("joinAdminRoom", (adminRoomName) => {
     socket.join(adminRoomName);
   });
@@ -64,7 +60,6 @@ io.on("connection", (socket) => {
     io.to("admin").emit("userLeft", userData.room, userData);
   });
 });
-
 // Dummy functions to manage room data
 function addUserToRoom(room, userData) {
   // Implement adding user to room logic
@@ -95,7 +90,7 @@ const client = new MongoClient(uri, {
 ///custom middleWare///
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
-  console.log('assalamualaikum',token)
+  console.log('assalamualaikum', token)
   if (!token) {
     return res.status(401).send({ message: "unauthorised access" });
   }
@@ -146,7 +141,7 @@ async function run() {
     app.get("/questionSet/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       console.log(req.query.email)
-      console.log('token owner info',req.user)
+      console.log('token owner info', req.user)
       const query = { userId: id };
       const cursor = QuestionCollection.find(query);
       const result = await cursor.toArray();
@@ -170,7 +165,7 @@ async function run() {
     });
 
     ///post request////
-    app.post("/questionSet",verifyToken, async (req, res) => {
+    app.post("/questionSet", verifyToken, async (req, res) => {
       const id = req.params.id;
       const question = req.body;
       const result = await QuestionCollection.insertOne(question);
@@ -178,7 +173,7 @@ async function run() {
     });
 
     ///update request///
-    app.put("/EditQuiz/:id", verifyToken,async (req, res) => {
+    app.put("/EditQuiz/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const Quiz = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -199,7 +194,7 @@ async function run() {
     });
 
     ///delete post///
-    app.delete("/questionset/:id",verifyToken, async (req, res) => {
+    app.delete("/questionset/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const ids = id.split(",");
       const idsToDelete = ids.map((id) => new ObjectId(id));
@@ -212,7 +207,7 @@ async function run() {
     });
 
     ///launch quiz////
-    app.get("/LaunchQuestionSet/:QId",verifyToken,async (req, res) => {
+    app.get("/LaunchQuestionSet/:QId", verifyToken, async (req, res) => {
       const id = req.params.QId;
       var result = "";
       var characters =
@@ -295,7 +290,7 @@ async function run() {
     });
 
     ///published questions////
-    app.get("/publishedQuestions/:uid", verifyToken,async (req, res) => {
+    app.get("/publishedQuestions/:uid", verifyToken, async (req, res) => {
       const uid = req.params.uid;
       const query = { userId: uid };
       const cursor = StudentCollection.find(query);
@@ -305,7 +300,7 @@ async function run() {
     });
 
     ///get report///
-    app.get("/getReports/:id", verifyToken,async (req, res) => {
+    app.get("/getReports/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const pipeline = [
         { $match: { _id: new ObjectId(id) } },
@@ -377,7 +372,7 @@ async function run() {
     });
 
     ///get user Info///
-    app.get("/userInfo/:id", verifyToken,async (req, res) => {
+    app.get("/userInfo/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: id };
       const result = await UserCollection.findOne(query);
@@ -385,7 +380,7 @@ async function run() {
     });
 
     ///get rooms ///
-    app.get("/getRooms/:uid", verifyToken,async (req, res) => {
+    app.get("/getRooms/:uid", verifyToken, async (req, res) => {
       const id = req.params.uid;
       const query = { userId: id };
       const cursor = StudentCollection.find(query);
@@ -394,7 +389,7 @@ async function run() {
     });
 
     ///update teacher profile///
-    app.put("/teacherProfile/:id", verifyToken,async (req, res) => {
+    app.put("/teacherProfile/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const body = req.body;
       const filter = { _id: id };
@@ -411,7 +406,7 @@ async function run() {
     });
 
     ///handle delete teacher profile///
-    app.delete("/teacherProfile/delete/:uid",verifyToken, async (req, res) => {
+    app.delete("/teacherProfile/delete/:uid", verifyToken, async (req, res) => {
       const id = req.params.uid;
       const query = { _id: id };
       const result = await UserCollection.deleteOne(query);
