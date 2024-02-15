@@ -1,17 +1,20 @@
 const express = require("express");
 const req = require("express/lib/request");
 const res = require("express/lib/response");
+const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-require('dotenv').config()
+require("dotenv").config();
 const app = express();
 const http = require("http");
 const socket = require("socket.io");
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 
 ///midleware///
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: ["http://localhost:4000"], credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 const server = http.createServer(app);
 // const io = socketIo(server);
 var io = socket(server, {
@@ -57,7 +60,6 @@ io.on("connection", (socket) => {
     io.to("admin").emit("userLeft", userData.room, userData);
   });
 });
-
 // Dummy functions to manage room data
 function addUserToRoom(room, userData) {
   // Implement adding user to room logic
@@ -74,9 +76,7 @@ server.listen(port, () => {
 
 ///mongo db user name & password///
 
-
-const uri =
-  `mongodb+srv://fahimtazwer:ALETgHxkxEf2sl8B@fahim1.p8agypj.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://fahimtazwer:ALETgHxkxEf2sl8B@fahim1.p8agypj.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -86,6 +86,22 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+///custom middleWare///
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+  console.log('assalamualaikum', token)
+  if (!token) {
+    return res.status(401).send({ message: "unauthorised access" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "unauthorised access" });
+    }
+    req.user = decoded;
+    next()
+  });
+};
 
 async function run() {
   try {
@@ -97,12 +113,35 @@ async function run() {
     const ReportCollection = database.collection("ReportCollection");
     const UserCollection = database.collection("UserCollection");
 
+    ///auth related api///
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+        })
+        .send({ success: true });
+    });
+
+    app.get("/logOut", async (req, res) => {
+      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+    });
+
+    ///Service related api///
+
     app.get("/", async (req, res) => {
       res.json({ name: "fahim" });
     });
     ///get request///
-    app.get("/questionSet/:id", async (req, res) => {
+    app.get("/questionSet/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
+      console.log(req.query.email)
+      console.log('token owner info', req.user)
       const query = { userId: id };
       const cursor = QuestionCollection.find(query);
       const result = await cursor.toArray();
@@ -126,7 +165,7 @@ async function run() {
     });
 
     ///post request////
-    app.post("/questionSet", async (req, res) => {
+    app.post("/questionSet", verifyToken, async (req, res) => {
       const id = req.params.id;
       const question = req.body;
       const result = await QuestionCollection.insertOne(question);
@@ -134,7 +173,7 @@ async function run() {
     });
 
     ///update request///
-    app.put("/EditQuiz/:id", async (req, res) => {
+    app.put("/EditQuiz/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const Quiz = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -155,7 +194,7 @@ async function run() {
     });
 
     ///delete post///
-    app.delete("/questionset/:id", async (req, res) => {
+    app.delete("/questionset/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const ids = id.split(",");
       const idsToDelete = ids.map((id) => new ObjectId(id));
@@ -168,7 +207,7 @@ async function run() {
     });
 
     ///launch quiz////
-    app.get("/LaunchQuestionSet/:QId", async (req, res) => {
+    app.get("/LaunchQuestionSet/:QId", verifyToken, async (req, res) => {
       const id = req.params.QId;
       var result = "";
       var characters =
@@ -251,7 +290,7 @@ async function run() {
     });
 
     ///published questions////
-    app.get("/publishedQuestions/:uid", async (req, res) => {
+    app.get("/publishedQuestions/:uid", verifyToken, async (req, res) => {
       const uid = req.params.uid;
       const query = { userId: uid };
       const cursor = StudentCollection.find(query);
@@ -261,7 +300,7 @@ async function run() {
     });
 
     ///get report///
-    app.get("/getReports/:id", async (req, res) => {
+    app.get("/getReports/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const pipeline = [
         { $match: { _id: new ObjectId(id) } },
@@ -333,7 +372,7 @@ async function run() {
     });
 
     ///get user Info///
-    app.get("/userInfo/:id", async (req, res) => {
+    app.get("/userInfo/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: id };
       const result = await UserCollection.findOne(query);
@@ -341,7 +380,7 @@ async function run() {
     });
 
     ///get rooms ///
-    app.get("/getRooms/:uid", async (req, res) => {
+    app.get("/getRooms/:uid", verifyToken, async (req, res) => {
       const id = req.params.uid;
       const query = { userId: id };
       const cursor = StudentCollection.find(query);
@@ -350,39 +389,39 @@ async function run() {
     });
 
     ///update teacher profile///
-    app.put("/teacherProfile/:id",async(req,res)=>{
+    app.put("/teacherProfile/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
-      const body = req.body
+      const body = req.body;
       const filter = { _id: id };
       const options = { upsert: true };
-      const updatedProfileInfo ={
-         $set: body 
-      }
+      const updatedProfileInfo = {
+        $set: body,
+      };
       const result = await UserCollection.updateOne(
         filter,
         updatedProfileInfo,
         options
       );
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     ///handle delete teacher profile///
-    app.delete('/teacherProfile/delete/:uid',async(req,res)=>{
-      const id=req.params.uid
+    app.delete("/teacherProfile/delete/:uid", verifyToken, async (req, res) => {
+      const id = req.params.uid;
       const query = { _id: id };
       const result = await UserCollection.deleteOne(query);
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     ///handle delete report///
-    app.delete('/reports/delete/:id',async(req,res)=>{
-      const id = req.params.id
-      const query={_id :new ObjectId(id)}
+    app.delete("/reports/delete/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
       // const result = await ReportCollection.deleteOne(query)
-      console.log(id)
+      console.log(id);
       // console.log(result)
       // res.send(result)
-    })
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
